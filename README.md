@@ -217,3 +217,7 @@ In the supplied assembly sketch, indices 0–4 receive 1500 µs, then index 5 is
 
 - [GitHub repository](https://github.com/joy-it/JoyIT_Robotarm_Arduino)
 - [Joy-IT](https://joy-it.net/)
+
+## AI assistance disclosure
+
+AI tools were used to assist with parts of the code, code review, example sketches, and documentation AI-assisted tools were used in parts of this library's development, including code implementation, code review, example sketches, and documentation. All AI-assisted content has been reviewed, verified, and tested on target hardware by our engineering team prior to release. This software is provided under the terms and warranty disclaimers of the repository's license.
