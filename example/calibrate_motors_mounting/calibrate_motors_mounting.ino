@@ -36,7 +36,7 @@ void setup() {
     }
 
     // set claw to a slighty different position
-    motorino.writeMicroseconds(servoChannels[Robotarm::SERVO_COUNT - 2], 1600);
+    motorino.writeMicroseconds(servoChannels[Robotarm::SERVO_COUNT - 1], 1600);
 }
 
 void loop() {
