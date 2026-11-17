@@ -167,7 +167,7 @@ Disable controller input with:
 robotarm.useController(false);
 ```
 
-If a controller read fails, the current implementation stops polling it. Call `useExternalController(true)` again to attempt reinitialization. Use analog mode for the sticks; if the controller is not recognized, consult the receiver manual's Mode-button instructions.
+If a controller read fails, the current implementation stops polling it. Call `useController(true)` again to attempt reinitialization. Use analog mode for the sticks; if the controller is not recognized, consult the receiver manual's Mode-button instructions.
 
 ### Reading positions
 

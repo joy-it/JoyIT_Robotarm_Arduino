@@ -34,7 +34,7 @@ void setup() {
     robotarm.resetAllPositions();
 
     // activate use with controller
-    robotarm.useExternalController(true);
+    robotarm.useController(true);
 
 
 }
@@ -48,6 +48,8 @@ void loop() {
     // output position of motors every second
     if (millis() - lastPrint >= 1000){
         lastPrint = millis();
+        // print state of connection with controller
+        Serial.print(robotarm.isControllerConnected() ? "[Controller connected] " : "[Searching for Controller] ");
         // print position of motors
         for (uint8_t i = 0; i < Robotarm::SERVO_COUNT; i++){
             uint8_t angle;
