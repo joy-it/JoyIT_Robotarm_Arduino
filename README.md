@@ -1,6 +1,7 @@
 # Joy-IT Robot arm Arduino
 
 Arduino library for the **Joy-IT Robot02** robot arm with six servos and the **ARD-Moto3 Motorino** servo controller. Control individual joints, move the arm between poses over a specified duration, or operate it using the **SBC-WLGamepad** wireless controller.
+This library and the **Motorino** is compatible with Arduino Uno and Arduin Uno Q.
 
 ## Features
 
@@ -16,8 +17,8 @@ Arduino library for the **Joy-IT Robot02** robot arm with six servos and the **A
 - Joy-IT Robot02: robot arm
 - Joy-IT ARD-Moto3 Motorino 
 - A suitable servo power supply
-- Arduino Uno or a compatible AVR board.
-- Optional Joy-IT SBC-WLGamepad with its receiver.
+- Arduino Uno or Arduin Uno Q
+- Optional Joy-IT SBC-WLGamepad with its receiver
 
 Install these libraries using the Arduino IDE Library Manager:
 
@@ -36,9 +37,9 @@ Connect the Motorino to the Arduino's I2C interface and power it according to it
 
 The library configures a **25 MHz external oscillator** and a nominal **50 Hz** servo update rate. These settings are intended for the Motorino board; a different PCA9685 board may require different clock settings.
 
-For the SBC-WLGamepad receiver, the Arduino Uno connections are:
+For the SBC-WLGamepad receiver, the Arduino Uno / Uno Q connections are:
 
-| Receiver connection | Arduino Uno |
+| Receiver connection | Arduino Uno / Uno Q |
 | --- | --- |
 | Pin 1 — Data | D12 / MISO |
 | Pin 2 — Command | D11 / MOSI |
@@ -51,7 +52,7 @@ For the SBC-WLGamepad receiver, the Arduino Uno connections are:
 | Pin 9 | --- |
 
 > [!NOTE]
-> The Attention pin is fixed to **D10** by `PsxControllerHwSpi<10>` in `Robotarm.h`. On other AVR boards, use that board's hardware SPI pins for Data, Command, and Clock.
+> The Attention pin is fixed to **D10** by `PsxControllerHwSpi<10>` in `Robotarm.h` for the Arduino Uno. With the Arduino Uno Q to communicate with the controller bit-banging is needed. Therefore, all of the above pins are set in `Robotarm.h`.
 
 See the [SBC-WLGamepad manual](https://joy-it.net/files/files/Produkte/SBC-WLGamepad/SBC-WLGamepad_Manual_2024-03-27.pdf) for receiver pin identification and setup.
 
@@ -130,7 +131,7 @@ Use `isMoving()` to determine whether a timed movement remains active. A duratio
 After `begin()` and the initial position commands, enable the controller:
 
 ```cpp
-if (!robotarm.useExternalController(true)) {
+if (!robotarm.useController(true)) {
     Serial.println(F("Gamepad initialization failed."));
 }
 ```
@@ -152,10 +153,18 @@ robotarm.update();
 
 The receiver is polled at intervals of at least 20 ms. Stick inputs use a dead zone around their center position. Controller commands change the stored angle incrementally; actual responsiveness also depends on integer angle rounding and how frequently `update()` is called. A controller command overrides a timed movement on the affected servo.
 
+You can check if the controller has still a connection with your microcontroller with the following:
+
+```cpp
+if (robotarm.isControllerConnected()) {
+    // if connected
+}
+```
+
 Disable controller input with:
 
 ```cpp
-robotarm.useExternalController(false);
+robotarm.useController(false);
 ```
 
 If a controller read fails, the current implementation stops polling it. Call `useExternalController(true)` again to attempt reinitialization. Use analog mode for the sticks; if the controller is not recognized, consult the receiver manual's Mode-button instructions.
@@ -185,7 +194,8 @@ Servo arguments are logical indices **0–5**, independent of the Motorino chann
 | --- | --- | --- |
 | `Robotarm(motorino, channels)` | — | Construct an arm using a driver reference and six channel numbers. |
 | `begin()` | `bool` | Initialize the Motorino. Returns `false` if driver initialization fails. Does not command home positions. |
-| `useExternalController(external = true)` | `bool` | Enable or disable gamepad input. When called after initialization, enabling returns the controller initialization result. Before `begin()`, it only stores the requested mode. |
+| `useController(external = true)` | `bool` | Enable or disable gamepad input. When called after initialization, enabling returns the controller initialization result. Before `begin()`, it only stores the requested mode. |
+| `isControllerConnected()` | `bool` | Returns `true` if controller was detected. Otherwise `false`. |
 | `setServoCalibration(servo, minPulseUs, maxPulseUs)` | `bool` | Set pulse widths for 0° and 180°. Rejects an invalid servo index or a maximum not greater than the minimum. |
 | `setPulseWidthOfAllServos(minPulseUs, maxPulseUs)` | `bool` | Apply the same calibration to all six servos. |
 | `setAngleOfServo(servo, angle)` | `void` | Command one angle immediately. |

@@ -8,10 +8,14 @@
 #define JOYIT_ROBOTARM_H
 
 #include <Arduino.h> 
-#include <DigitalIO.h>
-#include <PsxControllerHwSpi.h>
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
+#if defined(ARDUINO_ARCH_ZEPHYR)
+#include "WLGamepadUnoQ.h"
+#else
+#include <PsxControllerHwSpi.h>
+#endif
+
 
 class Robotarm{
     public:
@@ -37,7 +41,11 @@ class Robotarm{
     
     private:
         Adafruit_PWMServoDriver& _motorino;
+        #if defined(ARDUINO_ARCH_ZEPHYR)
+        WLGamepadUnoQ<10, 11, 12, 13> _controller;
+        #else
         PsxControllerHwSpi<10> _controller;
+        #endif
 
         static constexpr uint16_t _DEFAULT_SERVO_MIN_US = 500;
         static constexpr uint16_t _DEFAULT_SERVO_MAX_US = 2500;
