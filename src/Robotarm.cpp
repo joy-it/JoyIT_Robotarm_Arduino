@@ -1,7 +1,10 @@
 /*
-  Robotarm.cpp - Library for the Joy-IT robot arm and ARD-Moto3
-  Created by Joy-IT, October 20, 2026
-  Released into the public domain.
+  Robotarm.cpp - Library for the Joy-IT Robot Arm (Robot02) with the Motorino
+  servo driver on the Arduino Uno and the Arduino UNO Q.
+
+  Copyright (c) 2026 Joy-IT
+  SPDX-License-Identifier: MIT
+  See Robotarm.h for notes on third-party libraries.
 */
 
 #include "Robotarm.h"

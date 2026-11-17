@@ -1,7 +1,21 @@
 /*
-  Robotarm.h - Library for the Joy-IT robot arm and ARD-Moto3
-  Created by Joy-IT, October 20, 2026
-  Released into the public domain.
+  Robotarm.h - Library for the Joy-IT Robot Arm (Robot02) with the Motorino
+  servo driver on the Arduino Uno and the Arduino UNO Q.
+
+  Copyright (c) 2026 Joy-IT
+  SPDX-License-Identifier: MIT
+  See the LICENSE file in the root of this repository for the full license text.
+
+  Third-party libraries used by this library (not included, install separately):
+    - Adafruit PWM Servo Driver Library  BSD-3-Clause      (c) Adafruit Industries
+    - PsxNewLib                          GPL-3.0-or-later  (c) SukkoPera
+
+  The PS2 controller support uses PsxNewLib by SukkoPera
+  (https://github.com/SukkoPera/PsxNewLib), which is licensed under the
+  GNU General Public License v3.0 or later. Programs that are compiled and
+  distributed together with PsxNewLib are subject to the terms of the GPL.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
 */
 
 #ifndef JOYIT_ROBOTARM_H
