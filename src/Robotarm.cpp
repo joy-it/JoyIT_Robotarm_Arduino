@@ -26,19 +26,21 @@ bool Robotarm::begin(){
     if (!this->_motorino.begin(this->_PRESCALE)) return false;
     this->_motorino.setOscillatorFrequency(this->_EXTERNAL_OSCILLATOR_HZ);
     this->_initialized = true;
-    if (this->_controllerEnabled) this->useExternalController(this->_controllerEnabled);
+    if (this->_controllerEnabled) this->useController(this->_controllerEnabled);
     return true;
 }
 
-bool Robotarm::useExternalController(bool external){
+bool Robotarm::useController(bool external){
     this->_controllerEnabled = external;
-    if (!external){
-        this->_controllerReady = false;
-        return true;
-    }
+    this->_controllerReady = false;
+    this->_controllerFound = false;
+    if (!external) return true;
     if (!this->_initialized) return true;
-    this->_controllerReady = this->_controller.begin();
-    return this->_controllerReady;
+    return this->_connectController(millis());
+}
+
+bool Robotarm::isControllerConnected(){
+    return this->_controllerEnabled && this->_controllerReady;
 }
 
 bool Robotarm::setServoCalibration(uint8_t servo, uint16_t minPulseUs, uint16_t maxPulseUs){
@@ -147,13 +149,24 @@ void Robotarm::update(){
         this->setAngleOfServo(i, this->_clampAngle(angle));
         this->_moving[i] = true;
     }
-    if (!this->_controllerEnabled || !_controllerReady) return;
+    if (!this->_controllerEnabled) return;
+    if (!this->_controllerReady){
+        if (this->_controllerFound){
+            if (now - this->_controllerFoundMs >= this->_CONTROLLER_SETTLE_MS) this->_configureController(now);
+        }
+        else if (now - this->_lastControllerRetryMs >= this->_CONTROLLER_RETRY_MS){
+            this->_connectController(now);
+        }
+        return;
+    }
     if (now - this->_lastControllerReadMs < this->_CONTROLLER_POLL_MS) return;
-    const float dt = (now - this->_lastControlMs) / 1000.0f;
+    float dt = (now - this->_lastControlMs) / 1000.0f;
+    if (dt > this->_CONTROLLER_MAX_DT) dt = this->_CONTROLLER_MAX_DT;
     this->_lastControllerReadMs = now;
     this->_lastControlMs = now;
     if (!this->_controller.read()){
         this->_controllerReady = false;
+        this->_lastControllerRetryMs = now;
         return;
     }
     byte x = this->_ANALOG_CENTER;
@@ -183,13 +196,11 @@ bool Robotarm::isMoving(){
 
 void Robotarm::_applyControllerAxis(uint8_t servo, float input, float dt){
     if (servo >= this->SERVO_COUNT || servo < 0 || input == 0.0f) return;
-    if (!this->_positionKnown[servo]){
-        this->setAngleOfServo(servo, 90);
-        return;
-    } 
-    _moving[servo] = false;
-    const float nextAngle = this->_position[servo] + input * this->_STICK_SPEED_DEG_PER_SEC * dt;
-    this->setAngleOfServo(servo, this->_clampAngle(nextAngle));
+    const float nextAngle = this->_position[servo] + this->_controllerRemainder[servo]
+                          + input * this->_STICK_SPEED_DEG_PER_SEC * dt;
+    const uint8_t angle = this->_clampAngle(nextAngle);
+    this->_controllerRemainder[servo] = (nextAngle <= 0.0f || nextAngle >= 180.0f) ? 0.0f : nextAngle - angle;
+    this->setAngleOfServo(servo, angle);
 }
 
 uint8_t Robotarm::_clampAngle(float angle){
@@ -202,4 +213,24 @@ float Robotarm::_axisValue(uint8_t value){
     int16_t offset = static_cast<int16_t>(value) - this->_ANALOG_CENTER;
     if (abs(offset) <= this->_ANALOG_DEADZONE) return 0.0f;
     return static_cast<float>(offset) / 127.0f;
+}
+
+bool Robotarm::_connectController(uint32_t now){
+    this->_lastControllerRetryMs = now;
+    if (!this->_controller.begin()) return false;
+    this->_controllerFound = true;
+    this->_controllerFoundMs = now;
+    return true;
+}
+
+void Robotarm::_configureController(uint32_t now){
+    if (this->_controller.enterConfigMode()){
+        this->_controller.enableAnalogSticks();
+        this->_controller.exitConfigMode();
+    }
+    for (uint8_t i = 0; i < this->SERVO_COUNT; i++) this->_controllerRemainder[i] = 0.0f;
+    this->_controllerFound = false;
+    this->_controllerReady = true;
+    this->_lastControllerReadMs = now;
+    this->_lastControlMs = now; 
 }

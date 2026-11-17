@@ -19,7 +19,8 @@ class Robotarm{
         
         Robotarm(Adafruit_PWMServoDriver& motorino, const uint8_t* channel);
         bool begin();
-        bool useExternalController(bool external=true);
+        bool useController(bool external=true);
+        bool isControllerConnected();
         bool setServoCalibration(uint8_t servo, uint16_t minPulseUs, uint16_t maxPulseUs);
         bool setPulseWidthOfAllServos(uint16_t minPulseUs, uint16_t maxPulseUs);
         void setAngleOfServo(uint8_t servo, uint8_t angle);
@@ -66,9 +67,16 @@ class Robotarm{
         bool _externalController = false;
         bool _controllerEnabled = false;
         bool _controllerReady = false;
+        bool _controllerFound = false;
         bool _initialized = false;
         uint32_t _lastControllerReadMs = 0;
         uint32_t _lastControlMs = 0;
+        uint32_t _controllerFoundMs = 0;
+        uint32_t _lastControllerRetryMs = 0;
+        float _controllerRemainder[SERVO_COUNT] = {};
+        static constexpr uint16_t _CONTROLLER_RETRY_MS = 250;
+        static constexpr uint16_t _CONTROLLER_SETTLE_MS = 300;
+        static constexpr float _CONTROLLER_MAX_DT = 0.1f;
 
         static constexpr uint16_t _CONTROLLER_POLL_MS = 20;
         static constexpr uint8_t _ANALOG_CENTER = 128;
@@ -79,5 +87,7 @@ class Robotarm{
         void _applyControllerAxis(uint8_t servo, float input, float dt);
         uint8_t _clampAngle(float angle);
         float _axisValue(uint8_t value);
+        bool _connectController(uint32_t now);
+        void _configureController(uint32_t now);
 };
 #endif
